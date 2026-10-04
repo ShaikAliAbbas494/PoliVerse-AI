@@ -1,13 +1,22 @@
 import os
+
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
-# Load environment variables
+
+# -----------------------------------------
+# LOAD ENVIRONMENT VARIABLES
+# -----------------------------------------
+
 load_dotenv()
 
 API_KEY = os.getenv("YOUTUBE_API_KEY")
 
-# Create YouTube API client
+
+# -----------------------------------------
+# YOUTUBE API CLIENT
+# -----------------------------------------
+
 youtube = build(
     "youtube",
     "v3",
@@ -15,10 +24,12 @@ youtube = build(
 )
 
 
-# ------------------------------------------
-# Fetch Video Details
-# ------------------------------------------
+# -----------------------------------------
+# GET VIDEO DETAILS
+# -----------------------------------------
+
 def get_video_details(video_id):
+
     request = youtube.videos().list(
         part="snippet",
         id=video_id
@@ -38,31 +49,66 @@ def get_video_details(video_id):
     }
 
 
-# ------------------------------------------
-# Fetch Video Comments
-# ------------------------------------------
-def get_video_comments(video_id, max_results=20):
-    request = youtube.commentThreads().list(
-        part="snippet",
-        videoId=video_id,
-        maxResults=max_results,
-        textFormat="plainText"
-    )
+# -----------------------------------------
+# GET VIDEO COMMENTS WITH PAGINATION
+# -----------------------------------------
 
-    response = request.execute()
+def get_video_comments(
+    video_id,
+    max_comments=3000
+):
 
     comments = []
 
-    for item in response["items"]:
-        comment = item["snippet"]["topLevelComment"]
-        snippet = comment["snippet"]
+    next_page_token = None
 
-        comments.append({
-            "comment_id": comment["id"],
-            "author": snippet["authorDisplayName"],
-            "comment": snippet["textDisplay"],
-            "likes": snippet["likeCount"],
-            "published_at": snippet["publishedAt"]
-        })
+    while len(comments) < max_comments:
+
+        remaining = max_comments - len(comments)
+
+        request = youtube.commentThreads().list(
+            part="snippet",
+            videoId=video_id,
+            maxResults=min(100, remaining),
+            pageToken=next_page_token,
+            textFormat="plainText"
+        )
+
+        response = request.execute()
+
+        for item in response.get("items", []):
+
+            comment = item["snippet"]["topLevelComment"]
+            snippet = comment["snippet"]
+
+            comments.append({
+                "comment_id": comment["id"],
+                "author": snippet.get(
+                    "authorDisplayName",
+                    "Unknown"
+                ),
+                "comment": snippet.get(
+                    "textDisplay",
+                    ""
+                ),
+                "likes": snippet.get(
+                    "likeCount",
+                    0
+                ),
+                "published_at": snippet.get(
+                    "publishedAt"
+                )
+            })
+
+            if len(comments) >= max_comments:
+                break
+
+        next_page_token = response.get(
+            "nextPageToken"
+        )
+
+        # Stop if YouTube has no more pages
+        if not next_page_token:
+            break
 
     return comments

@@ -1,4 +1,12 @@
-from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    TIMESTAMP,
+    ForeignKey,
+    Boolean
+)
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
@@ -11,15 +19,37 @@ from app.database import Base
 class Video(Base):
     __tablename__ = "videos"
 
-    id = Column(Integer, primary_key=True, index=True)
-    youtube_video_id = Column(String(100), unique=True, nullable=False, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    title = Column(Text, nullable=False)
-    channel_name = Column(Text, nullable=False)
+    youtube_video_id = Column(
+        String(100),
+        unique=True,
+        nullable=False,
+        index=True
+    )
 
-    published_at = Column(TIMESTAMP)
+    title = Column(
+        Text,
+        nullable=False
+    )
 
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    channel_name = Column(
+        Text,
+        nullable=False
+    )
+
+    published_at = Column(
+        TIMESTAMP
+    )
+
+    created_at = Column(
+        TIMESTAMP,
+        server_default=func.now()
+    )
 
     comments = relationship(
         "Comment",
@@ -34,7 +64,11 @@ class Video(Base):
 class Comment(Base):
     __tablename__ = "comments"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     video_id = Column(
         Integer,
@@ -49,17 +83,38 @@ class Comment(Base):
         index=True
     )
 
-    author_name = Column(Text)
+    author_name = Column(
+        Text
+    )
 
-    comment_text = Column(Text)
+    comment_text = Column(
+        Text
+    )
 
-    language = Column(String(30))
+    # Detected language
+    language = Column(
+        String(30)
+    )
 
-    sentiment = Column(String(20))
+    # Whether the comment contains only emojis/symbols
+    is_emoji_only = Column(
+        Boolean,
+        default=False
+    )
 
-    likes = Column(Integer, default=0)
+    # General sentiment stored here for compatibility
+    sentiment = Column(
+        String(20)
+    )
 
-    published_at = Column(TIMESTAMP)
+    likes = Column(
+        Integer,
+        default=0
+    )
+
+    published_at = Column(
+        TIMESTAMP
+    )
 
     video = relationship(
         "Video",
@@ -73,28 +128,49 @@ class Comment(Base):
 class YouTubeJob(Base):
     __tablename__ = "youtube_jobs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
-    youtube_video_id = Column(String(100), index=True)
+    youtube_video_id = Column(
+        String(100),
+        index=True
+    )
 
-    youtube_url = Column(Text)
+    youtube_url = Column(
+        Text
+    )
 
-    video_title = Column(Text)
+    video_title = Column(
+        Text
+    )
 
-    channel_name = Column(Text)
+    channel_name = Column(
+        Text
+    )
 
-    fetch_status = Column(String(20))
+    fetch_status = Column(
+        String(20)
+    )
 
-    comments_fetched = Column(Integer)
+    comments_fetched = Column(
+        Integer
+    )
 
     started_at = Column(
         TIMESTAMP,
         server_default=func.now()
     )
 
-    completed_at = Column(TIMESTAMP)
+    completed_at = Column(
+        TIMESTAMP
+    )
 
-    error_message = Column(Text)
+    error_message = Column(
+        Text
+    )
 
 
 # -----------------------------------------
@@ -103,7 +179,11 @@ class YouTubeJob(Base):
 class Sentiment(Base):
     __tablename__ = "sentiments"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
 
     comment_id = Column(
         Integer,
@@ -111,11 +191,50 @@ class Sentiment(Base):
         nullable=False
     )
 
-    prediction = Column(String(20))
+    # -------------------------------------
+    # GENERAL SENTIMENT
+    # -------------------------------------
 
-    confidence = Column(String(20))
+    prediction = Column(
+        String(20)
+    )
 
-    model_name = Column(String(100))
+    confidence = Column(
+        String(20)
+    )
+
+    # -------------------------------------
+    # TARGET-AWARE POLITICAL STANCE
+    # -------------------------------------
+
+    # Political leader or party selected
+    # by the user for analysis.
+    #
+    # Examples:
+    # Revanth Reddy
+    # KCR
+    # BJP
+    # Congress
+
+    stance_target = Column(
+        String(100)
+    )
+
+    stance = Column(
+        String(30)
+    )
+
+    stance_confidence = Column(
+        String(20)
+    )
+
+    # -------------------------------------
+    # MODEL INFORMATION
+    # -------------------------------------
+
+    model_name = Column(
+        String(100)
+    )
 
     analyzed_at = Column(
         TIMESTAMP,

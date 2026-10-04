@@ -1,0 +1,33 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+env/
+
+# Node.js
+node_modules/
+.next/
+out/
+dist/
+
+# VS Code
+.vscode/
+
+# Local backup files
+*-backup.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

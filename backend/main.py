@@ -2,24 +2,35 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-# Database
 from app.database import engine, Base
-
-# Import models so SQLAlchemy knows about them
 from app import models
 
-# Routers
 from app.routers.youtube_router import router as youtube_router
+from app.routers.sentiment_router import router as sentiment_router
+from app.routers.dataset_router import router as dataset_router
+
+
+# -----------------------------------------
+# CREATE DATABASE TABLES
+# -----------------------------------------
+
+Base.metadata.create_all(bind=engine)
+
+
+# -----------------------------------------
+# FASTAPI APPLICATION
+# -----------------------------------------
 
 app = FastAPI(
     title="PoliVerse AI",
     version="1.0.0"
 )
 
-# Create all tables if they don't exist
-Base.metadata.create_all(bind=engine)
 
-# Enable CORS
+# -----------------------------------------
+# CORS CONFIGURATION
+# -----------------------------------------
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -31,9 +42,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Routers
-app.include_router(youtube_router)
 
+# -----------------------------------------
+# REGISTER ROUTERS
+# -----------------------------------------
+
+app.include_router(youtube_router)
+app.include_router(sentiment_router)
+app.include_router(dataset_router)
+
+
+# -----------------------------------------
+# HOME
+# -----------------------------------------
 
 @app.get("/")
 def home():
@@ -43,11 +64,32 @@ def home():
     }
 
 
+# -----------------------------------------
+# SYSTEM STATUS
+# -----------------------------------------
+
+@app.get("/status")
+def status():
+    return {
+        "project": "PoliVerse AI",
+        "status": "Running",
+        "version": "1.0.0"
+    }
+
+
+# -----------------------------------------
+# DATABASE TEST
+# -----------------------------------------
+
 @app.get("/db-test")
 def db_test():
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("SELECT current_database();"))
+
+            result = connection.execute(
+                text("SELECT current_database();")
+            )
+
             db_name = result.scalar()
 
         return {
@@ -56,6 +98,7 @@ def db_test():
         }
 
     except Exception as e:
+
         return {
             "status": "Connection Failed",
             "error": str(e)
