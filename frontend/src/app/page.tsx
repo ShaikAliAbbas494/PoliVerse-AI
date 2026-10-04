@@ -340,45 +340,82 @@ export default function Home() {
   ===================================================== */
 
 
+const handleAnalysisComplete = async (
+  data: any,
+  analyzedTarget: string
+) => {
+  setTarget(analyzedTarget);
 
-  const handleAnalysisComplete = async (
+  setVideo(data?.video || null);
 
-    data: any,
+  const comments = data?.comments || [];
 
-    analyzedTarget: string
+  // -----------------------------
+  // SENTIMENT SUMMARY
+  // -----------------------------
 
-  ) => {
+  const positive = comments.filter(
+    (comment: any) =>
+      comment.sentiment === "Positive"
+  ).length;
 
+  const neutral = comments.filter(
+    (comment: any) =>
+      comment.sentiment === "Neutral"
+  ).length;
 
+  const negative = comments.filter(
+    (comment: any) =>
+      comment.sentiment === "Negative"
+  ).length;
 
-    setTarget(analyzedTarget);
+  setSentiment({
+    target: analyzedTarget,
+    total_analyzed: comments.length,
+    positive,
+    neutral,
+    negative,
+  });
 
+  // -----------------------------
+  // POLITICAL STANCE SUMMARY
+  // -----------------------------
 
+  const support = comments.filter(
+    (comment: any) =>
+      comment.stance === "Support"
+  ).length;
 
+  const oppose = comments.filter(
+    (comment: any) =>
+      comment.stance === "Oppose"
+  ).length;
 
+  const stanceNeutral = comments.filter(
+    (comment: any) =>
+      comment.stance === "Neutral"
+  ).length;
 
-    setVideo(
+  const uncertain = comments.filter(
+    (comment: any) =>
+      comment.stance === "Uncertain"
+  ).length;
 
-      data?.video || null
+  const noPoliticalStance = comments.filter(
+    (comment: any) =>
+      comment.stance === "No Political Stance"
+  ).length;
 
-    );
-
-
-
-
-
-    await loadDashboard(
-
-      analyzedTarget
-
-    );
-
-
-
-  };
-
-
-
+  setStance({
+    target: analyzedTarget,
+    total_analyzed: comments.length,
+    support,
+    oppose,
+    neutral: stanceNeutral,
+    uncertain,
+    no_political_stance: noPoliticalStance,
+  });
+};
 
 
   /* =====================================================
